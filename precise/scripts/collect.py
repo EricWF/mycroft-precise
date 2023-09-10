@@ -15,7 +15,7 @@
 from select import select
 from sys import stdin
 from termios import tcsetattr, tcgetattr, TCSADRAIN
-
+import time
 import tty
 import wave
 from os.path import isfile
@@ -26,13 +26,14 @@ from precise.scripts.base_script import BaseScript
 
 
 def record_until(p, should_return, args):
-    chunk_size = 1024
+    chunk_size = 512
     stream = p.open(format=p.get_format_from_width(args.width), channels=args.channels,
                     rate=args.rate, input=True, frames_per_buffer=chunk_size)
 
     frames = []
     while not should_return():
         frames.append(stream.read(chunk_size))
+    frames = frames[:-1]
 
     stream.stop_stream()
     stream.close()
@@ -129,7 +130,7 @@ class CollectScript(BaseScript):
 
             if not self.wait_to_continue():
                 break
-
+            time.sleep(0.3) # Wait for key to be released
             print('Recording...')
             d = self.record_until_key()
             name = self.next_name(args.file_label)
